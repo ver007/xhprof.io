@@ -8,6 +8,41 @@ Rename the `/xhprof/includes/config.inc.sample.php` to `/xhprof/includes/config.
 * `pdo` is the PDO instance. This library uses [PDO](http://uk3.php.net/pdo) to handle all of the database operations.
 * `enable` is a closure to control when enable data collection, return true means always enable
 
+Some cases for reference:
+
+Alway enable
+``` php
+'enable' => function() {
+     return true;
+}
+```
+
+Enable if url contents `debug` parameter:
+``` php
+'enable' => function() {
+    if (!empty($_GET['debug'])) {
+        return true;
+    }
+}
+```
+
+Enable for 1/100 probability
+``` php
+'enable' => function() {
+    return rand(0, 100) === 42;
+}
+```
+
+Enable for url path is `/`:
+``` php
+'enable' => function() {
+    if (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) === '/') {
+        return true;
+    }
+}
+```
+
+
 For XHProf.io to start collecting data, you need `/inc/inject.php` files included to every file of interest. The recommended approach is to update your `php.ini` configuration to automatically prepend and append these files.
 
     auto_prepend_file = /[absolute path to xhprof.io]/inc/inject.php
