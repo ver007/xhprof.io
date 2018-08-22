@@ -52,3 +52,57 @@ If you use nginx, you could configuration `auto_prepend_file` as a `fastcgi_para
     fastcgi_param  PHP_VALUE "auto_prepend_file=/[absolute path to xhprof.io]/inc/inject.php";
 
 If you are using PHP-FPM, then XHProf.io will utilise `fastcgi_finish_request` to hide any overhead related to data collection. There is nothing to worry about if you are not using PHP-FPM either, as the overhead is less than a few milliseconds.
+
+
+### ZH-CN
+
+xhprof.io修正版安装与使用
+
+安装及配置方法如下，假设web服务器根目录为/opt/htdocs
+
+    cd /opt/htdocs
+    git clone https://github.com/EvaEngine/xhprof.io.git
+    cd xhprof.io/
+    composer install
+    cp xhprof/includes/config.inc.sample.php xhprof/includes/config.inc.php
+    vi xhprof/includes/config.inc.php
+
+在MySQL中建立xhprof.io数据库，假设数据库名为xhprof，然后导入xhprof/setup/database.sql
+
+配置文件config.inc.php中需要调整
+
+    'url_base' => 'http://localhost/xhprof.io/', 这是xhprof.io界面所在路径
+    'pdo' => new PDO('mysql:dbname=xhprof;host=localhost;charset=utf8', 'root', 'password'), 根据MySQL实际情况调整配置
+    enable 这是一个匿名函数，当匿名函数返回true时启用xhprof数据收集
+
+通过配置enable项，就可以实现线上调试的需求，比如
+
+始终开启xhprof
+
+     'enable' => function() {
+          return true;
+     }
+
+1/100概率随机开启xhprof
+
+     'enable' => function() {
+          return rand(0, 100) === 1;
+     }
+
+网页携带参数debug=1时开启xhprof
+
+     'enable' => function() {
+          return !empty($_GET['debug']);
+     }
+
+网页URL为特定路径时开启
+
+     'enable' => function() {
+          return strpos($_SERVER['REQUEST_URI'], '/testurl') === 0;
+     }
+
+最后按上文所述，在要配置的项目中包含xhprof.io/inc/inject.php即可。
+
+线上环境操作时务必要胆大心细，如果没有结果尤其注意需要检查xhprof扩展是否安装。
+附录：xhpgui
+
